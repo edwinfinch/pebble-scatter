@@ -66,6 +66,7 @@ void process_tuple(Tuple *t)
 	//APP_LOG(APP_LOG_LEVEL_DEBUG, "Loaded key num: %d with value %d", key, value);
   switch (key) {
 	  case 0:
+	  	refresh_timer = app_timer_register(1000, tuples_processed, NULL);
 	  	settings.btdisalert = value;
 	  	break;
 	  case 1:
@@ -101,9 +102,7 @@ void tuples_processed(){
 
 static void in_received_handler(DictionaryIterator *iter, void *context) 
 {
-	refresh_timer = app_timer_register(1000, tuples_processed, NULL);
 	Tuple *t = dict_read_first(iter);
-	//APP_LOG(APP_LOG_LEVEL_INFO, "got data");
 	if(t)
 	{
 		process_tuple(t);

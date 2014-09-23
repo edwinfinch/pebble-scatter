@@ -21,6 +21,9 @@ void update_anim_ms_circles(){
 		case 2:
 			anim_speed_m = get_animation_ms();
 			break;
+		case 3:
+			anim_speed_m = 15;
+			break;
 	}
 }
 

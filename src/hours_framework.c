@@ -21,7 +21,7 @@ void update_anim_ms_squares(){
 			anim_speed = get_animation_ms();
 			break;
 		case 3:
-			anim_speed = 5;
+			anim_speed = 15;
 			break;
 	}
 }
