@@ -59,6 +59,10 @@ void refresh_settings(bool boot){
 	}
 }
 
+void tuples_processed(){
+	refresh_settings(false);
+}
+
 void process_tuple(Tuple *t)
 {
 	int key = t->key;
@@ -94,10 +98,6 @@ void process_tuple(Tuple *t)
 	  	settings.animation_setting = value;
 	  	break;
   }
-}
-
-void tuples_processed(){
-	refresh_settings(false);
 }
 
 static void in_received_handler(DictionaryIterator *iter, void *context) 
@@ -274,8 +274,21 @@ void init(){
 	app_message_register_inbox_received(in_received_handler);
 	app_message_open(512, 512);
 	
-	int value = persist_read_data(0, &settings, sizeof(settings));
-	APP_LOG(APP_LOG_LEVEL_INFO, "%d bytes read", value);
+	if(persist_exists(0)){
+		int value = persist_read_data(0, &settings, sizeof(settings));
+		APP_LOG(APP_LOG_LEVEL_INFO, "%d bytes read", value);
+	}
+	else{
+		settings.theme = 0;
+		settings.btdisalert = 1;
+		settings.btrealert = 0;
+		settings.batterybar = 1;
+		settings.animations = 1;
+		settings.circles = 0;
+		settings.squares = 0;
+		settings.hourlyvibe = 0;
+		settings.animation_setting = 2;
+	}
 	
 	tick_timer_service_subscribe(MINUTE_UNIT, &tick_handler);
 	srand(time(NULL));
