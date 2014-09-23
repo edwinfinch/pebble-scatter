@@ -1,0 +1,47 @@
+{
+    "appKeys": {
+        "animations": 4,
+        "animset": 8,
+        "batterybar": 3,
+        "btdisalert": 0,
+        "btrealert": 1,
+        "hourlyvibe": 7,
+        "showcircles": 5,
+        "showsquares": 6,
+        "theme": 2
+    },
+    "capabilities": [
+        "configurable"
+    ],
+    "companyName": "Edwin Finch",
+    "longName": "SCATTER",
+    "projectType": "native",
+    "resources": {
+        "media": [
+            {
+                "file": "images/download (1).png",
+                "menuIcon": true,
+                "name": "IMAGE_MENU_ICON",
+                "type": "png"
+            },
+            {
+                "characterRegex": "[0-9, :]",
+                "file": "fonts/impact.ttf",
+                "name": "FONT_IMPACT_32",
+                "type": "font"
+            },
+            {
+                "file": "images/SCATTER_background.png",
+                "name": "IMAGE_BACKGROUND",
+                "type": "png"
+            }
+        ]
+    },
+    "shortName": "SCATTER",
+    "uuid": "79bc6c30-5c1c-40ab-acfb-24f2f90912a3",
+    "versionCode": 1,
+    "versionLabel": "1.1",
+    "watchapp": {
+        "watchface": true
+    }
+}
