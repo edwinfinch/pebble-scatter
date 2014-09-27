@@ -11,6 +11,7 @@ AppTimer *m_timer, *refresh_timer;
 bool booted_m = false;
 InverterLayer *custom_t;
 AppTimer *pulse_timer_m;
+bool changed_constanim = false;
 
 typedef struct Persist {
 	bool theme;

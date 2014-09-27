@@ -6,5 +6,5 @@ void hours_layer_deinit();
 void hours_set_hidden(bool hidden);
 void update_anim_ms_squares();
 bool hours_loaded();
-void pulse_hours();
+void pulse_hours(bool shrink);
 void switch_hours();

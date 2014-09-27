@@ -4,5 +4,5 @@ void minutes_layer_init(Window *window);
 void minutes_layer_deinit();
 void minutes_set_hidden(bool hidden);
 bool minutes_loaded();
-void pulse_minutes();
+void pulse_minutes(bool shrink);
 void switch_minutes();

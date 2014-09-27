@@ -36,7 +36,7 @@ void animate_layer(Layer *layer, GRect *start, GRect *finish, int duration, int 
     animation_schedule((Animation*) anim);
 }
 
-void glance(const char *updateText, bool vibrate, int vibrateNum, int animationLength){
+void glance(const char *updateText, bool vibrate, int vibrateNum, int animationLength, bool isHalf){
 	text_layer_set_text(update_at_a_glance, updateText);
 	if(vibrate){
 		switch(vibrateNum){
@@ -53,8 +53,15 @@ void glance(const char *updateText, bool vibrate, int vibrateNum, int animationL
 	   }
 	GRect start01 = GRect(0, 300, 144, 168);
 	GRect finish02 = GRect(0, 300, 144, 168);
-	GRect finish01 = GRect(0, 145, 144, 168);
-	GRect start02 = GRect(0, 145, 144, 168);
+	GRect finish01, start02;
+	if(!isHalf){
+		finish01 = GRect(0, 145, 144, 168);
+		start02 = GRect(0, 145, 144, 168);
+	}
+	else{
+		finish01 = GRect(0, 84, 144, 168);
+		start02 = GRect(0, 84, 144, 168);
+	}
 	animate_layer(text_layer_get_layer(update_at_a_glance), &start01, &finish01, 1000, 0);
 	animate_layer(text_layer_get_layer(update_at_a_glance), &start02, &finish02, 1000, animationLength);
 }
@@ -78,21 +85,32 @@ void refresh_settings(bool boot){
 	hours_set_hidden(settings.squares);
 	layer_mark_dirty(rect_layer);
 	if(!boot){
-		glance("Settings updated.", 1, 2, 5000);
+		if(!changed_constanim){
+			glance("Settings updated.", 1, 2, 5000, false);
+		}
+		else{
+			glance("Settings almost updated. Switch to another watchface and switch back to apply all changes.", 1, 1, 7000, true);
+		}
 	}
 }
 
 void pulse_m_callback(){
 	if(settings.constant_animation == 1){
 		if(hours_loaded() && minutes_loaded()){
-			pulse_hours();
-			pulse_minutes();
+			pulse_hours(false);
+			pulse_minutes(false);
 		}
 	}
 	else if(settings.constant_animation == 2){
 		if(hours_loaded() && minutes_loaded()){
 			switch_hours();
 			switch_minutes();
+		}
+	}
+	else if(settings.constant_animation == 3){
+		if(hours_loaded() && minutes_loaded()){
+			pulse_hours(true);
+			pulse_minutes(true);
 		}
 	}
 	else{
@@ -142,6 +160,12 @@ void process_tuple(Tuple *t)
 	  	settings.animation_setting = value;
 	  	break;
 	  case 9:
+	  	if(settings.constant_animation == 0 && value > 0){
+			changed_constanim = true;
+		}
+	  	else{
+			changed_constanim = false;
+		}
 	  	settings.constant_animation = value;
 	  	break;
 	  case 10:
@@ -226,10 +250,10 @@ void battery_handler(BatteryChargeState state){
 
 void bt_handler(bool connected){
 	if(settings.btdisalert && !connected){
-		glance("Bluetooth disconnected", 1, 3, 5000);
+		glance("Bluetooth disconnected", 1, 3, 5000, false);
 	}
 	if(settings.btrealert && connected){
-		glance("Bluetooth reconnected", 1, 1, 5000);
+		glance("Bluetooth reconnected", 1, 1, 5000, false);
 	}
 }
 
@@ -303,7 +327,7 @@ void window_load(Window *w){
 		layer_set_frame(text_layer_get_layer(date_layer), GRect(33, 83, 80, 38));
 	}
 	if(settings.boot_glance){
-		glance("SCATTER 1.3.0", 0, 0, 2000);
+		glance("SCATTER 1.4 stable", 0, 0, 2000, false);
 	}
 }
 

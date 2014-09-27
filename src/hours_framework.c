@@ -11,10 +11,11 @@ AppTimer *pulse_timer_h;
 int s_toshow = 10, s_enabled = 0;
 int anim_speed = 100;
 uint8_t s_stage = 0;
-uint8_t sq_value = 0;
-uint8_t sq_pos_change = 0;
+int sq_value = 0;
+int sq_pos_change = 0;
 bool pulse_enabled_s = false;
 uint8_t switch_s = 0;
+bool pulse_s_shrink = 0;
 
 void switch_hours(){
 	switch_s++;
@@ -48,13 +49,25 @@ void switch_hours(){
 
 void pulse_callback(){
 	s_stage++;
-	if(s_stage < 5){
-		sq_value += 2;
-		sq_pos_change++;
+	if(pulse_s_shrink){
+		if(s_stage < 5){
+			sq_value -= 2;
+			sq_pos_change--;
+		}
+		else{
+			sq_value += 2;
+			sq_pos_change++;
+		}
 	}
 	else{
-		sq_value -= 2;
-		sq_pos_change--;
+		if(s_stage < 5){
+			sq_value += 2;
+			sq_pos_change++;
+		}
+		else{
+			sq_value -= 2;
+			sq_pos_change--;
+		}
 	}
 		
 	if(s_stage < 8){
@@ -68,9 +81,10 @@ void pulse_callback(){
 	layer_mark_dirty(hours_layer);
 }
 
-void pulse_hours(){
+void pulse_hours(bool shrink){
 	pulse_enabled_s = true;
 	s_stage = 0;
+	pulse_s_shrink = shrink;
 	pulse_timer_h = app_timer_register(100, pulse_callback, NULL);
 }
 

@@ -13,9 +13,10 @@ int anim_speed_m = 100;
 	
 AppTimer *pulse_timer_m;
 uint8_t c_stage = 0;
-uint8_t ci_value = 0;
+int ci_value = 0;
 bool pulse_enabled_c = false;
 uint8_t switch_c = 0;
+bool pulse_c_shrink = false;
 
 void switch_minutes(){
 	switch_c++;
@@ -48,11 +49,24 @@ void switch_minutes(){
 
 void pulse_callback_c(){
 	c_stage++;
-	if(c_stage < 5){
-		ci_value += 1;
+	if(pulse_c_shrink){
+		if(c_stage < 5){
+			ci_value -= 1;
+			if(ci_value < 0){
+				ci_value = 0;
+			}
+		}
+		else{
+			ci_value += 1;
+		}
 	}
 	else{
-		ci_value -= 1;
+		if(c_stage < 5){
+			ci_value += 1;
+		}
+		else{
+			ci_value -= 1;
+		}
 	}
 		
 	if(c_stage < 8){
@@ -65,9 +79,10 @@ void pulse_callback_c(){
 	layer_mark_dirty(minutes_layer);
 }
 
-void pulse_minutes(){
+void pulse_minutes(bool shrink){
 	pulse_enabled_c = true;
 	c_stage = 0;
+	pulse_c_shrink = shrink;
 	pulse_timer_m = app_timer_register(100, pulse_callback_c, NULL);
 }
 
