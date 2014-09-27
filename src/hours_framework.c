@@ -5,10 +5,82 @@
 	
 Layer *hours_layer;
 int square_coords[2][24];	
+int square_coords_b[2][24];
 AppTimer *squaretimer;
+AppTimer *pulse_timer_h;
 int s_toshow = 10, s_enabled = 0;
 int anim_speed = 100;
+uint8_t s_stage = 0;
+uint8_t sq_value = 0;
+uint8_t sq_pos_change = 0;
+bool pulse_enabled_s = false;
+uint8_t switch_s = 0;
+
+void switch_hours(){
+	switch_s++;
+	bool is_res, is_valid;
+	is_res = false;
+	is_valid = false;
+	int x, y;
+	int fix_pos[2];
+	clear_reserved_coordinate(square_coords_b[0][switch_s], square_coords_b[1][switch_s], true);
+	loop_fix:
+	x = get_random_x(false);
+	y = get_random_y(false);
+						
+	is_valid = is_valid_coordinate(x, y, true);
+	is_res = is_coordinate_reserved(x, y, true);
+	if(!is_valid || is_res){
+		goto loop_fix;
+	}
+	reserve_coordinate(x, y);
+	fix_pos[0] = (x*8)+1;
+	fix_pos[1] = (y*8);
+		
+	square_coords[0][switch_s] = fix_pos[0];
+	square_coords[1][switch_s] = fix_pos[1];
 	
+	if(switch_s > s_toshow){
+		switch_s = 0;
+	}
+	layer_mark_dirty(hours_layer);
+}
+
+void pulse_callback(){
+	s_stage++;
+	if(s_stage < 5){
+		sq_value += 2;
+		sq_pos_change++;
+	}
+	else{
+		sq_value -= 2;
+		sq_pos_change--;
+	}
+		
+	if(s_stage < 8){
+		pulse_timer_h = app_timer_register(100, pulse_callback, NULL);
+	}
+	else{
+		s_stage = 0;
+		sq_value = 7;
+		sq_pos_change = 0;
+	}
+	layer_mark_dirty(hours_layer);
+}
+
+void pulse_hours(){
+	pulse_enabled_s = true;
+	s_stage = 0;
+	pulse_timer_h = app_timer_register(100, pulse_callback, NULL);
+}
+
+bool hours_loaded(){
+	if(s_toshow == s_enabled){
+		return true;
+	}
+	return false;
+}
+
 void update_anim_ms_squares(){
 	switch(get_animation_setting()){
 		case 0:
@@ -64,7 +136,7 @@ void fire_square_animation(){
 		x = get_random_x(false);
 		y = get_random_y(false);
 						
-		is_valid = is_valid_coordinate(x, y, true);
+		is_valid = is_valid_coordinate(x, y, true); //yes
 		is_res = is_coordinate_reserved(x, y, true);
 		if(!is_valid || is_res){
 			goto loop_fix;
@@ -75,6 +147,8 @@ void fire_square_animation(){
 		
 		square_coords[0][i] = fix_pos[0];
 		square_coords[1][i] = fix_pos[1];
+		square_coords_b[0][i] = x;
+		square_coords_b[1][i] = y;
 		
 		//APP_LOG(APP_LOG_LEVEL_INFO, "X: %d, Y: %d (%d, %d)", fix_pos[0], fix_pos[1], x, y);
 		
@@ -85,9 +159,16 @@ void fire_square_animation(){
 
 void hours_proc(Layer *layer, GContext *ctx){
 	graphics_context_set_fill_color(ctx, GColorWhite);
+	//APP_LOG(APP_LOG_LEVEL_INFO, "sqposc == %d, sq_value == %d, s_stage == %d", sq_pos_change, sq_value, s_stage);
 	for(int j = s_enabled; j > 0; j--){
-		graphics_fill_rect(ctx, GRect(square_coords[0][j], square_coords[1][j], 7, 7), 0, GCornerNone);
-		graphics_draw_rect(ctx, GRect(square_coords[0][j], square_coords[1][j], 7, 7));
+		if(pulse_enabled_s){
+			graphics_fill_rect(ctx, GRect(square_coords[0][j]-sq_pos_change, square_coords[1][j]-sq_pos_change, sq_value, sq_value), 0, GCornerNone);
+			graphics_draw_rect(ctx, GRect(square_coords[0][j]-sq_pos_change, square_coords[1][j]-sq_pos_change, sq_value, sq_value));
+		}
+		else{
+			graphics_fill_rect(ctx, GRect(square_coords[0][j], square_coords[1][j], 7, 7), 0, GCornerNone);
+			graphics_draw_rect(ctx, GRect(square_coords[0][j], square_coords[1][j], 7, 7));
+		}
 	}
 }
 

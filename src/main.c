@@ -36,6 +36,29 @@ void animate_layer(Layer *layer, GRect *start, GRect *finish, int duration, int 
     animation_schedule((Animation*) anim);
 }
 
+void glance(const char *updateText, bool vibrate, int vibrateNum, int animationLength){
+	text_layer_set_text(update_at_a_glance, updateText);
+	if(vibrate){
+		switch(vibrateNum){
+			case 1:
+				vibes_short_pulse();
+				break;
+			case 2:
+				vibes_double_pulse();
+				break;
+			case 3:
+				vibes_long_pulse();
+				break;
+		}
+	   }
+	GRect start01 = GRect(0, 300, 144, 168);
+	GRect finish02 = GRect(0, 300, 144, 168);
+	GRect finish01 = GRect(0, 145, 144, 168);
+	GRect start02 = GRect(0, 145, 144, 168);
+	animate_layer(text_layer_get_layer(update_at_a_glance), &start01, &finish01, 1000, 0);
+	animate_layer(text_layer_get_layer(update_at_a_glance), &start02, &finish02, 1000, animationLength);
+}
+
 static TextLayer* text_layer_init(GRect location, bool is_date)
 {
 	TextLayer *layer = text_layer_create(location);
@@ -55,8 +78,29 @@ void refresh_settings(bool boot){
 	hours_set_hidden(settings.squares);
 	layer_mark_dirty(rect_layer);
 	if(!boot){
-		vibes_double_pulse();
+		glance("Settings updated.", 1, 2, 5000);
 	}
+}
+
+void pulse_m_callback(){
+	if(settings.constant_animation == 1){
+		if(hours_loaded() && minutes_loaded()){
+			pulse_hours();
+			pulse_minutes();
+		}
+	}
+	else if(settings.constant_animation == 2){
+		if(hours_loaded() && minutes_loaded()){
+			switch_hours();
+			switch_minutes();
+		}
+	}
+	else{
+		//disable
+		return;
+	}
+	//APP_LOG(APP_LOG_LEVEL_INFO, "Calling mtimer");
+	app_timer_register(1000, pulse_m_callback, NULL);
 }
 
 void tuples_processed(){
@@ -96,6 +140,12 @@ void process_tuple(Tuple *t)
 	  	break;
 	  case 8:
 	  	settings.animation_setting = value;
+	  	break;
+	  case 9:
+	  	settings.constant_animation = value;
+	  	break;
+	  case 10:
+	  	settings.boot_glance = value;
 	  	break;
   }
 }
@@ -176,10 +226,10 @@ void battery_handler(BatteryChargeState state){
 
 void bt_handler(bool connected){
 	if(settings.btdisalert && !connected){
-		vibes_long_pulse();
+		glance("Bluetooth disconnected", 1, 3, 5000);
 	}
 	if(settings.btrealert && connected){
-		vibes_double_pulse();
+		glance("Bluetooth reconnected", 1, 1, 5000);
 	}
 }
 
@@ -206,6 +256,12 @@ void window_load(Window *w){
 	
 	minutes_layer_init(w);
 	hours_layer_init(w);
+	
+	update_at_a_glance = text_layer_init(GRect(0, 300, 140, 168), false);
+	text_layer_set_font(update_at_a_glance, fonts_get_system_font(FONT_KEY_GOTHIC_18));
+	text_layer_set_background_color(update_at_a_glance, GColorBlack);
+	text_layer_set_text_color(update_at_a_glance, GColorWhite);
+  	layer_add_child(window_layer, text_layer_get_layer(update_at_a_glance));
 	
 	custom_t = inverter_layer_create(GRect(0, 0, 144, 168));
 	layer_add_child(window_layer, inverter_layer_get_layer(custom_t));
@@ -246,6 +302,9 @@ void window_load(Window *w){
 		layer_set_frame(text_layer_get_layer(time_layer), GRect(33, 50, 80, 38));
 		layer_set_frame(text_layer_get_layer(date_layer), GRect(33, 83, 80, 38));
 	}
+	if(settings.boot_glance){
+		glance("SCATTER 1.3.0", 0, 0, 2000);
+	}
 }
 
 void window_unload(Window *w){
@@ -276,7 +335,7 @@ void init(){
 	
 	if(persist_exists(0)){
 		int value = persist_read_data(0, &settings, sizeof(settings));
-		APP_LOG(APP_LOG_LEVEL_INFO, "%d bytes read", value);
+		APP_LOG(APP_LOG_LEVEL_INFO, "SCATTER: %d bytes read", value);
 	}
 	else{
 		settings.theme = 0;
@@ -288,16 +347,18 @@ void init(){
 		settings.squares = 0;
 		settings.hourlyvibe = 0;
 		settings.animation_setting = 2;
+		settings.constant_animation = 0;
+		settings.boot_glance = 1;
 	}
-	
 	tick_timer_service_subscribe(MINUTE_UNIT, &tick_handler);
+	pulse_timer_m = app_timer_register(4000, pulse_m_callback, NULL);
 	srand(time(NULL));
 	window_stack_push(window, true);
 }
 
 void deinit(){
 	int value = persist_write_data(0, &settings, sizeof(settings));
-	APP_LOG(APP_LOG_LEVEL_INFO, "%d bytes written", value);
+	APP_LOG(APP_LOG_LEVEL_INFO, "SCATTER: %d bytes written", value);
 	battery_state_service_unsubscribe();
 	window_destroy(window);
 }

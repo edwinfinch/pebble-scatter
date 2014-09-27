@@ -4,6 +4,16 @@
 bool dot_taken[1000];
 struct tm *t_dfw;
 	
+void clear_reserved_coordinate(int x, int y, bool isSquare){
+	if(isSquare){
+		x++;
+		y++;
+	}
+	int toClear = x*y;
+	//APP_LOG(APP_LOG_LEVEL_INFO, "clearing x: %d, y: %d", x, y);
+	dot_taken[toClear] = false;
+}
+
 bool x_is_blackzone(int x, bool isSquare){
 	int limit_1 = 3, limit_2 = 16;
 	if(isSquare){

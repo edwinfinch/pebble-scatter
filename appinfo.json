@@ -3,8 +3,10 @@
         "animations": 4,
         "animset": 8,
         "batterybar": 3,
+        "bootglance": 10,
         "btdisalert": 0,
         "btrealert": 1,
+        "constanim": 9,
         "hourlyvibe": 7,
         "showcircles": 5,
         "showsquares": 6,
@@ -40,7 +42,7 @@
     "shortName": "SCATTER",
     "uuid": "79bc6c30-5c1c-40ab-acfb-24f2f90912a3",
     "versionCode": 1,
-    "versionLabel": "1.2",
+    "versionLabel": "1.3",
     "watchapp": {
         "watchface": true
     }
